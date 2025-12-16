@@ -49,7 +49,10 @@ vagrant ssh slave
 sudo mysql -e "SHOW REPLICA STATUS\G" | grep "Running"
 Ожидаем:
 Replica_IO_Running: Yes Replica_SQL_Running: Yes
+```
 
-2. Проверяем данные: Смотрим список таблиц на слейве:
+**2. Проверяем данные: Смотрим список таблиц на слейве:**
+```bash
 vagrant ssh slave
 sudo mysql -e "SHOW TABLES FROM bet;"
+```
