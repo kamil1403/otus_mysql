@@ -139,7 +139,7 @@ end
 **1. Проверяем статус:**
 ```bash
 vagrant ssh slave
-sudo mysql -e "SHOW REPLICA STATUS\G" | grep "Running"
+sudo mysql -e "SHOW REPLICA STATUS\G"
 Ожидаем:
 Replica_IO_Running: Yes Replica_SQL_Running: Yes
 ```
