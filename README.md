@@ -1,4 +1,4 @@
-<p align="center">
+<img width="780" height="356" alt="image" src="https://github.com/user-attachments/assets/1c27ed7a-3a2e-47fa-96b4-8635341900cb" /><img width="780" height="356" alt="image" src="https://github.com/user-attachments/assets/8e0ba6c4-b25d-4362-ba50-41bf8916054e" /><p align="center">
   <img src="https://upload.wikimedia.org/wikipedia/en/d/dd/MySQL_logo.svg" alt="MySQL Logo" width="300">
 </p>
 
@@ -29,17 +29,110 @@
 
 <a id="one"></a>
 ## 🧰 Шаг 1 - Настройка Vagrant
-Всё автоматизировано в `Vagrantfile`.
-
 **Master (192.168.56.10):**
-* MySQL 8.0, конфиг `mysqld.cnf` с `GTID_MODE=ON`.
-* Открыт порт 3306 (iptables).
-* Создан юзер `repl`.
-* При старте скрипт проверяет наличие `bet.dmp` и заливает базу.
-
 **Slave (192.168.56.11):**
-* `server-id=2`.
-* Делается первичный дамп с мастера и запускается `START REPLICA`.
+
+Все автоматизировано в `Vagrantfile`.
+```bash
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/jammy64"
+
+  config.vm.define "master" do |master|
+    master.vm.network "private_network", ip: "192.168.56.10"
+    master.vm.hostname = "master"
+
+    master.vm.provision "shell", inline: <<-SHELL
+      echo "=== [MASTER] Старт ==="
+      export DEBIAN_FRONTEND=noninteractive
+
+      ufw disable
+      iptables -F
+
+      apt-get update
+      apt-get install -y mysql-server
+
+      cat > /etc/mysql/mysql.conf.d/mysqld.cnf <<EOF
+[mysqld]
+pid-file        = /var/run/mysqld/mysqld.pid
+socket          = /var/run/mysqld/mysqld.sock
+datadir         = /var/lib/mysql
+log-error       = /var/log/mysql/error.log
+bind-address    = 0.0.0.0
+server-id       = 1
+log_bin         = /var/log/mysql/mysql-bin.log
+gtid_mode       = ON
+enforce_gtid_consistency = ON
+EOF
+
+      systemctl restart mysql
+      sleep 5
+
+      mysql -e "CREATE USER IF NOT EXISTS 'repl'@'%' IDENTIFIED BY 'password';"
+      mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'repl'@'%';"
+      mysql -e "FLUSH PRIVILEGES;"
+
+      if [ -f /vagrant/bet.dmp ]; then
+          echo "=== [MASTER] Заливаем базу ==="
+          mysql -e "CREATE DATABASE IF NOT EXISTS bet;"
+          mysql bet < /vagrant/bet.dmp
+      fi
+
+      echo "=== [MASTER] Готов ==="
+    SHELL
+  end
+
+  config.vm.define "slave" do |slave|
+    slave.vm.network "private_network", ip: "192.168.56.11"
+    slave.vm.hostname = "slave"
+
+    slave.vm.provision "shell", inline: <<-SHELL
+      echo "=== [SLAVE] Старт ==="
+      export DEBIAN_FRONTEND=noninteractive
+
+      ufw disable
+      iptables -F
+
+      apt-get update
+      apt-get install -y mysql-server
+
+      cat > /etc/mysql/mysql.conf.d/mysqld.cnf <<EOF
+[mysqld]
+pid-file        = /var/run/mysqld/mysqld.pid
+socket          = /var/run/mysqld/mysqld.sock
+datadir         = /var/lib/mysql
+log-error       = /var/log/mysql/error.log
+bind-address    = 0.0.0.0
+server-id       = 2
+log_bin         = /var/log/mysql/mysql-bin.log
+gtid_mode       = ON
+enforce_gtid_consistency = ON
+EOF
+
+      systemctl restart mysql
+
+      echo "15 сек"
+      sleep 15
+      ip neigh flush all
+
+      mysql -e "CREATE DATABASE IF NOT EXISTS bet;"
+
+      mysqldump -h 192.168.56.10 -u repl -ppassword bet \
+        --ignore-table=bet.events_on_demand \
+        --ignore-table=bet.v_same_event \
+        --source-data=2 --single-transaction | mysql bet
+
+      mysql -e "CHANGE REPLICATION SOURCE TO SOURCE_HOST='192.168.56.10', SOURCE_USER='repl', SOURCE_PASSWORD='password', SOURCE_AUTO_POSITION=1, GET_SOURCE_PUBLIC_KEY=1;"
+      mysql -e "START REPLICA;"
+
+      echo "Готово"
+      mysql -e "SHOW REPLICA STATUS\\G" | grep "Running"
+    SHELL
+  end
+end
+```
 
 <a id="two"></a>
 ## 🧰 Шаг 2 - Проверка
