@@ -39,8 +39,6 @@
 
 **Slave (192.168.56.11):**
 * `server-id=2`.
-* Скрипт ждет доступности порта 3306 на мастере.
-* Очищается ARP-кэш для стабильности сети.
 * Делается первичный дамп с мастера и запускается `START REPLICA`.
 
 <a id="two"></a>
@@ -50,12 +48,8 @@
 vagrant ssh slave
 sudo mysql -e "SHOW REPLICA STATUS\G" | grep "Running"
 Ожидаем:
-
 Replica_IO_Running: Yes Replica_SQL_Running: Yes
 
 2. Проверяем данные: Смотрим список таблиц на слейве:
-
-Bash
-
 vagrant ssh slave
 sudo mysql -e "SHOW TABLES FROM bet;"
