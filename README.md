@@ -16,10 +16,10 @@
 - [x] Данные на слейве идентичны мастеру.
 
 **1. Статус репликации (Slave):**
-🖼️ ![](https://github.com/kamil1403/otus_mysql/blob/main/screenshots/otus_mysql_1.png)
+Результат см. на скриншоте 🖼️ ["1.png"](https://github.com/kamil1403/otus_mysql/blob/main/screenshots/otus_mysql_1.png)
 
 **2. Данные в базе (Slave):**
-🖼️ ![](https://github.com/kamil1403/otus_mysql/blob/main/screenshots/otus_mysql_2.png)
+Результат см. на скриншоте 🖼️ ["2.png"](https://github.com/kamil1403/otus_mysql/blob/main/screenshots/otus_mysql_2.png)
 
 ### 🧭 Оглавление
 - [🧰 Шаг 1 - Настройка Vagrant](#one)
