@@ -1,4 +1,4 @@
-<img width="780" height="356" alt="image" src="https://github.com/user-attachments/assets/1c27ed7a-3a2e-47fa-96b4-8635341900cb" /><img width="780" height="356" alt="image" src="https://github.com/user-attachments/assets/8e0ba6c4-b25d-4362-ba50-41bf8916054e" /><p align="center">
+<p align="center">
   <img src="https://upload.wikimedia.org/wikipedia/en/d/dd/MySQL_logo.svg" alt="MySQL Logo" width="300">
 </p>
 
